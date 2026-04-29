@@ -1,12 +1,6 @@
 console.log("🚀 NEW DEPLOYMENT VERSION ACTIVE");
-window.addEventListener("load", () => {
-  const last = localStorage.getItem("lastSearch");
-  if (last) {
-    search.value = last;
-    searchSongs(last);
-  }
-});
 
+// Elements
 const form = document.getElementById("form");
 const search = document.getElementById("search");
 const result = document.getElementById("result");
@@ -17,6 +11,21 @@ const apiURL = "https://api.lyrics.ovh";
 
 let lastSearch = "";
 
+/* ---------------------------
+   Load last search on refresh
+---------------------------- */
+window.addEventListener("load", () => {
+  const last = localStorage.getItem("lastSearch");
+  if (last) {
+    search.value = last;
+    lastSearch = last;
+    searchSongs(last);
+  }
+});
+
+/* ---------------------------
+   Search form submit
+---------------------------- */
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -27,28 +36,44 @@ form.addEventListener("submit", (e) => {
   localStorage.setItem("lastSearch", term);
 
   loading.style.display = "block";
-
   searchSongs(term);
 });
 
+/* ---------------------------
+   Fetch songs
+---------------------------- */
 async function searchSongs(term) {
-  const res = await fetch(`${apiURL}/suggest/${term}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${apiURL}/suggest/${term}`);
+    const data = await res.json();
 
-  loading.style.display = "none";
-  showSongs(data);
+    loading.style.display = "none";
+
+    if (!data.data || data.data.length === 0) {
+      result.innerHTML = "<p>No results found 😕</p>";
+      return;
+    }
+
+    showSongs(data);
+  } catch (err) {
+    loading.style.display = "none";
+    result.innerHTML = "<p>Something went wrong. Try again.</p>";
+  }
 }
 
+/* ---------------------------
+   Render song list
+---------------------------- */
 function showSongs(data) {
   result.innerHTML = `
-    <ul>
+    <ul class="songs">
       ${data.data
         .map(
           (song) => `
         <li>
           <strong style="color:#8d56fd">${song.artist.name}</strong> - ${song.title}
-          <button class="btn" 
-            data-artist="${song.artist.name}" 
+          <button class="btn"
+            data-artist="${song.artist.name}"
             data-song="${song.title}">
             Get Lyrics
           </button>
@@ -60,33 +85,44 @@ function showSongs(data) {
   `;
 }
 
+/* ---------------------------
+   Click handler (lyrics + back)
+---------------------------- */
 result.addEventListener("click", (e) => {
-  if (e.target.tagName === "BUTTON") {
-    const artist = e.target.dataset.artist;
-    const song = e.target.dataset.song;
+  const btn = e.target.closest("button");
+  if (!btn) return;
 
-    getLyrics(artist, song);
+  // Lyrics button
+  if (btn.dataset.artist && btn.dataset.song) {
+    getLyrics(btn.dataset.artist, btn.dataset.song);
+    return;
+  }
 
-    const backBtn = document.createElement("button");
-    backBtn.textContent = "← Back";
-    backBtn.className = "btn";
-
-    backBtn.addEventListener("click", () => {
-      searchSongs(lastSearch);
-    });
-
-    result.prepend(backBtn);
+  // Back button
+  if (btn.id === "backBtn") {
+    searchSongs(lastSearch);
   }
 });
 
+/* ---------------------------
+   Get lyrics view
+---------------------------- */
 async function getLyrics(artist, song) {
-  const res = await fetch(`${apiURL}/v1/${artist}/${song}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${apiURL}/v1/${artist}/${song}`);
+    const data = await res.json();
 
-  result.innerHTML = `
-    <h2>${artist} - ${song}</h2>
-    <p>${data.lyrics || "No lyrics found"}</p>
-  `;
+    result.innerHTML = `
+      <button id="backBtn" class="btn">← Back</button>
+      <h2>${artist} - ${song}</h2>
+      <p>${data.lyrics || "No lyrics found"}</p>
+    `;
 
-  more.innerHTML = "";
+    more.innerHTML = "";
+  } catch (err) {
+    result.innerHTML = `
+      <button id="backBtn" class="btn">← Back</button>
+      <p>Error loading lyrics.</p>
+    `;
+  }
 }

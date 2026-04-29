@@ -2,6 +2,7 @@ const form = document.getElementById("form");
 const search = document.getElementById("search");
 const result = document.getElementById("result");
 const more = document.getElementById("more");
+const loading = document.getElementById("loading");
 
 const apiURL = "https://api.lyrics.ovh";
 

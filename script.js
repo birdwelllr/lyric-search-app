@@ -1,3 +1,10 @@
+window.addEventListener("load", () => {
+  const last = localStorage.getItem("lastSearch");
+  if (last) {
+    search.value = last;
+    searchSongs(last);
+  }
+});
 const form = document.getElementById("form");
 const search = document.getElementById("search");
 const result = document.getElementById("result");
@@ -7,6 +14,7 @@ const loading = document.getElementById("loading");
 const apiURL = "https://api.lyrics.ovh";
 
 form.addEventListener("submit", (e) => {
+    localStorage.setItem("lastSearch", term);
   e.preventDefault();
 
   const term = search.value.trim();
@@ -14,6 +22,8 @@ form.addEventListener("submit", (e) => {
   if (!term) return;
 
   searchSongs(term);
+  loading.style.display = "block";
+  loading.style.display = "none";
 });
 
 async function searchSongs(term) {
@@ -30,9 +40,7 @@ function showSongs(data) {
         .map(
           (song) => `
         <li>
-          <strong>${song.artist.name}</strong> - ${song.title}
-          <button class="btn" data-artist="${song.artist.name}" data-song="${song.title}">
-            Lyrics
+<strong style="color:#8d56fd">${song.artist.name}</strong> - ${song.title}            Lyrics
           </button>
         </li>
       `
@@ -48,6 +56,15 @@ result.addEventListener("click", (e) => {
     const song = e.target.dataset.song;
 
     getLyrics(artist, song);
+    const backBtn = document.createElement("button");
+backBtn.textContent = "← Back";
+backBtn.className = "btn";
+
+backBtn.addEventListener("click", () => {
+  searchSongs(search.value);
+});
+
+result.prepend(backBtn);
   }
 });
 

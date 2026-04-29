@@ -112,17 +112,27 @@ async function getLyrics(artist, song) {
     const res = await fetch(`${apiURL}/v1/${artist}/${song}`);
     const data = await res.json();
 
+    // 🚨 Proper error handling
+    if (!data.lyrics || data.error) {
+      result.innerHTML = `
+        <button id="backBtn" class="btn">← Back</button>
+        <h2>${artist} - ${song}</h2>
+        <p>Lyrics not found 😕</p>
+      `;
+      return;
+    }
+
     result.innerHTML = `
       <button id="backBtn" class="btn">← Back</button>
       <h2>${artist} - ${song}</h2>
-      <p>${data.lyrics || "No lyrics found"}</p>
+      <p>${data.lyrics}</p>
     `;
 
     more.innerHTML = "";
   } catch (err) {
     result.innerHTML = `
       <button id="backBtn" class="btn">← Back</button>
-      <p>Error loading lyrics.</p>
+      <p>Error fetching lyrics.</p>
     `;
   }
 }

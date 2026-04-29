@@ -1,3 +1,4 @@
+console.log("🚀 NEW DEPLOYMENT VERSION ACTIVE");
 window.addEventListener("load", () => {
   const last = localStorage.getItem("lastSearch");
   if (last) {
@@ -5,6 +6,7 @@ window.addEventListener("load", () => {
     searchSongs(last);
   }
 });
+
 const form = document.getElementById("form");
 const search = document.getElementById("search");
 const result = document.getElementById("result");
@@ -13,23 +15,27 @@ const loading = document.getElementById("loading");
 
 const apiURL = "https://api.lyrics.ovh";
 
+let lastSearch = "";
+
 form.addEventListener("submit", (e) => {
-    localStorage.setItem("lastSearch", term);
   e.preventDefault();
 
   const term = search.value.trim();
-
   if (!term) return;
 
-  searchSongs(term);
+  lastSearch = term;
+  localStorage.setItem("lastSearch", term);
+
   loading.style.display = "block";
-  loading.style.display = "none";
+
+  searchSongs(term);
 });
 
 async function searchSongs(term) {
   const res = await fetch(`${apiURL}/suggest/${term}`);
   const data = await res.json();
 
+  loading.style.display = "none";
   showSongs(data);
 }
 
@@ -40,7 +46,11 @@ function showSongs(data) {
         .map(
           (song) => `
         <li>
-<strong style="color:#8d56fd">${song.artist.name}</strong> - ${song.title}            Lyrics
+          <strong style="color:#8d56fd">${song.artist.name}</strong> - ${song.title}
+          <button class="btn" 
+            data-artist="${song.artist.name}" 
+            data-song="${song.title}">
+            Get Lyrics
           </button>
         </li>
       `
@@ -56,15 +66,16 @@ result.addEventListener("click", (e) => {
     const song = e.target.dataset.song;
 
     getLyrics(artist, song);
+
     const backBtn = document.createElement("button");
-backBtn.textContent = "← Back";
-backBtn.className = "btn";
+    backBtn.textContent = "← Back";
+    backBtn.className = "btn";
 
-backBtn.addEventListener("click", () => {
-  searchSongs(search.value);
-});
+    backBtn.addEventListener("click", () => {
+      searchSongs(lastSearch);
+    });
 
-result.prepend(backBtn);
+    result.prepend(backBtn);
   }
 });
 

@@ -43,11 +43,11 @@ form.addEventListener("submit", (e) => {
    Fetch songs
 ---------------------------- */
 async function searchSongs(term) {
+  loading.style.display = "block";
+
   try {
     const res = await fetch(`${apiURL}/suggest/${term}`);
     const data = await res.json();
-
-    loading.style.display = "none";
 
     if (!data.data || data.data.length === 0) {
       result.innerHTML = "<p>No results found 😕</p>";
@@ -56,8 +56,9 @@ async function searchSongs(term) {
 
     showSongs(data);
   } catch (err) {
-    loading.style.display = "none";
     result.innerHTML = "<p>Something went wrong. Try again.</p>";
+  } finally {
+    loading.style.display = "none";
   }
 }
 

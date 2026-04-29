@@ -56,3 +56,11 @@ ul.songs li {
 ul.songs li:hover {
   transform: scale(1.02);
 }
+.loading {
+  display: none;
+  text-align: center;
+  margin: 20px auto;
+  font-weight: bold;
+  color: #8d56fd;
+  font-size: 18px;
+}
